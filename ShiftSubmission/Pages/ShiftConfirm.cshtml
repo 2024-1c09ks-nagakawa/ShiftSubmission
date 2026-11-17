@@ -1,0 +1,241 @@
+﻿ @page
+@model ShiftSubmission.Pages.ShiftConfirmModel
+
+@{
+    ViewData["Title"] = "シフト確認";
+}
+
+<style>
+    body {
+        background: #ffffcc;
+    }
+
+    .confirm-container {
+        max-width: 460px;
+        margin: 0 auto;
+        background: white;
+        font-family: sans-serif;
+    }
+
+    /* ヘッダー */
+    .header {
+        height: 78px;
+        background-color: rgb(192, 255, 255);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+        .header h1 {
+            font-size: 30px;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        .header .menu-toggle {
+            position: absolute;
+            left: 12px;
+            border: none;
+            background: transparent;
+            font-size: 30px;
+            color: #222;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+    /* 月の切り替えと年月選択 */
+    .month-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 6px;
+        background: white;
+    }
+
+        .month-nav > a {
+            color: #222;
+            text-decoration: none;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+    .month-select-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+        padding: 8px;
+        background: white;
+    }
+
+        .month-select-form label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .month-select-form input[type="month"] {
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+    /* カレンダー */
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        border-top: 1px solid #777;
+        border-left: 1px solid #777;
+    }
+
+    .weekday {
+        text-align: center;
+        padding: 6px 0;
+        font-size: 13px;
+        border-right: 1px solid #777;
+        border-bottom: 1px solid #777;
+        background: #dceaf7;
+    }
+
+        .weekday:first-child {
+            background: #f4ae8c;
+        }
+
+    .day-cell {
+        min-width: 0;
+        height: 68px;
+        border-right: 1px solid #777;
+        border-bottom: 1px solid #777;
+    }
+
+        .day-cell a {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            position: relative;
+        }
+
+            .day-cell a.selected {
+                background: #ccc;
+                outline: 2px solid #234b59;
+                outline-offset: -2px;
+            }
+
+            .day-cell a.has-shift::after {
+                content: "";
+                width: 5px;
+                height: 5px;
+                background: #168b50;
+                border-radius: 50%;
+                position: absolute;
+                bottom: 7px;
+            }
+
+    /* 選択した日付とシフト時間 */
+    .selected-date {
+        padding: 8px;
+        background: #ddd;
+        border-bottom: 1px solid #333;
+        font-size: 16px;
+    }
+
+    .shift-time {
+        min-height: 78px;
+        padding: 16px 4px;
+        text-align: center;
+        font-size: clamp(24px, 6vw, 36px);
+        background: white;
+        border-bottom: 1px solid #168b50;
+    }
+</style>
+
+<div class="confirm-container">
+    <header class="header">
+        <button type="button"
+                class="menu-toggle"
+                onclick="openSideMenu()"
+                aria-label="メニューを開く">
+            ☰
+        </button>
+
+        <h1>シフト確認</h1>
+    </header>
+
+    <partial name="_SideMenu" />
+
+    <div class="month-nav">
+        <a asp-page="/ShiftConfirm"
+           asp-route-year="@(Model.Month == 1 ? Model.Year - 1 : Model.Year)"
+           asp-route-month="@(Model.Month == 1 ? 12 : Model.Month - 1)">
+            ◀ 前月
+        </a>
+
+        <form method="get"
+              class="month-select-form"
+              id="monthForm">
+
+            <label for="targetMonth">確認する年月</label>
+
+            <input type="month"
+                   id="targetMonth"
+                   name="targetMonth"
+                   value="@($"{Model.Year:D4}-{Model.Month:D2}")"
+                   required />
+        </form>
+
+        <a asp-page="/ShiftConfirm"
+           asp-route-year="@(Model.Month == 12 ? Model.Year + 1 : Model.Year)"
+           asp-route-month="@(Model.Month == 12 ? 1 : Model.Month + 1)">
+            次月 ▶
+        </a>
+    </div>
+
+    <div class="calendar">
+        @foreach (var weekday in new[] { "日", "月", "火", "水", "木", "金", "土" })
+        {
+            <div class="weekday">@weekday</div>
+        }
+
+        @foreach (var day in Model.CalendarDays)
+        {
+            <div class="day-cell">
+                @if (day.Date.HasValue)
+                {
+                    <a asp-page="/ShiftConfirm"
+                       asp-route-year="@day.Date.Value.Year"
+                       asp-route-month="@day.Date.Value.Month"
+                       asp-route-day="@day.Date.Value.Day"
+                       class="@(day.IsSelected ? "selected" : "") @(day.HasShift ? "has-shift" : "")">
+                        @day.Date.Value.Day 日
+                    </a>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="selected-date">
+        @Model.SelectedDate.ToString("yyyy年 M月 d日 (ddd)")
+    </div>
+
+    <div class="shift-time">
+        @Model.ShiftTime
+    </div>
+</div>
+
+<script>
+    document.getElementById("targetMonth").addEventListener("change", function () {
+        if (this.value) {
+            document.getElementById("monthForm").requestSubmit();
+        }
+    });
+</script>

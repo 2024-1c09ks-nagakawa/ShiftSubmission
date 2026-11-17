@@ -1,0 +1,242 @@
+﻿@page
+@model ShiftSubmission.Pages.AvailabilityModel
+
+@{
+    ViewData["Title"] = "出勤可能時間設定";
+}
+
+<style>
+    body {
+        background: rgb(255, 255, 192);
+        color: #333;
+    }
+
+    .availability-page {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 0 12px 20px;
+    }
+
+    .header {
+        height: 78px;
+        background: rgb(192, 255, 255);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .page-title {
+        font-size: 21px;
+        font-weight: normal;
+    }
+
+    .menu-toggle {
+        position: absolute;
+        left: 12px;
+        border: none;
+        background: transparent;
+        font-size: 30px;
+        cursor: pointer;
+    }
+
+    .panel {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 14px;
+        margin-top: 14px;
+    }
+
+    .day-row {
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+        .day-row:last-child {
+            border-bottom: none;
+        }
+
+    .day-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .time-label {
+        display: block;
+        font-size: 13px;
+        margin: 8px 0 4px;
+    }
+
+    .time-select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        background: white;
+        font-size: 16px;
+    }
+
+    .time-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .unavailable {
+        accent-color: #168b50;
+    }
+
+    .save-button {
+        width: 100%;
+        margin-top: 16px;
+        padding: 15px;
+        border: none;
+        border-radius: 9px;
+        background: #168b50;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    .message {
+        margin-top: 14px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #e4f6e9;
+        color: #176b36;
+    }
+
+    .errors {
+        color: #c62828;
+        margin-top: 12px;
+    }
+
+    .disabled-times {
+        opacity: 0.4;
+    }
+</style>
+
+<div class="availability-page">
+    <header class="header">
+        <button type="button"
+                class="menu-toggle"
+                onclick="openSideMenu()"
+                aria-label="メニューを開く">
+            ☰
+        </button>
+
+        <h1 class="page-title">出勤可能時間設定</h1>
+    </header>
+
+    <partial name="_SideMenu" />
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message">@Model.Message</div>
+    }
+
+    <div asp-validation-summary="All" class="errors"></div>
+
+    <form method="post">
+        <div class="panel">
+            <p>曜日ごとの出勤可能時間を設定してください。</p>
+            <p>出勤できない曜日は「出勤不可」にチェックします。</p>
+
+            @for (int i = 0; i < Model.Days.Count; i++)
+            {
+                <div class="day-row">
+                    <input type="hidden" asp-for="Days[i].DayOfWeek" />
+                    <input type="hidden" asp-for="Days[i].DayName" />
+
+                    <div class="day-heading">
+                        <span>@Model.Days[i].DayName</span>
+
+                        <label>
+                            <input asp-for="Days[i].IsUnavailable"
+                                   class="unavailable"
+                                   onchange="toggleUnavailable(this)" />
+                            出勤不可
+                        </label>
+                    </div>
+
+                    <div class="time-fields">
+                        <div>
+                            <label class="time-label">開始時間</label>
+                            <select asp-for="Days[i].StartTime"
+                                    class="time-select">
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="time-label">終了時間</label>
+                            <select asp-for="Days[i].EndTime"
+                                    class="time-select">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <button type="submit" class="save-button">
+            曜日別設定を保存
+        </button>
+    </form>
+</div>
+
+<script>
+    function fillTimes(select, defaultTime) {
+        const current = select.value || defaultTime;
+        select.innerHTML = "";
+
+        for (let minutes = 0; minutes < 24 * 60; minutes += 30) {
+            const hour = Math.floor(minutes / 60);
+            const minute = minutes % 60;
+
+            const time =
+                String(hour).padStart(2, "0") + ":" +
+                String(minute).padStart(2, "0");
+
+            const option = document.createElement("option");
+            option.value = time;
+            option.textContent = time;
+            select.appendChild(option);
+        }
+
+        select.value = current;
+
+        if (!select.value) {
+            select.value = defaultTime;
+        }
+    }
+
+    function toggleUnavailable(checkbox) {
+        const row = checkbox.closest(".day-row");
+        const fields = row.querySelector(".time-fields");
+
+        fields.classList.toggle("disabled-times", checkbox.checked);
+
+        fields.querySelectorAll("select").forEach(select => {
+            select.disabled = checkbox.checked;
+        });
+    }
+
+    document.querySelectorAll(".day-row").forEach(row => {
+        const selects = row.querySelectorAll(".time-select");
+
+        if (selects.length === 2) {
+            fillTimes(selects[0], "09:00");
+            fillTimes(selects[1], "17:00");
+        }
+
+        const checkbox = row.querySelector(".unavailable");
+
+        if (checkbox) {
+            toggleUnavailable(checkbox);
+        }
+    });
+</script>

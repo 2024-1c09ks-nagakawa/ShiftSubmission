@@ -1,0 +1,208 @@
+﻿@page
+@model ShiftSubmission.Pages.AnnouncementsModel
+
+@{
+    ViewData["Title"] = "お知らせ";
+}
+
+<style>
+    body {
+        background: rgb(255, 255, 192);
+    }
+
+    .announce-page {
+        max-width: 520px;
+        margin: 0 auto;
+        min-height: 100vh;
+        color: #222;
+    }
+
+    /* ヘッダー */
+    .announce-header {
+        position: relative;
+        height: 78px;
+        background: rgb(192, 255, 255);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .announce-hamburger {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #222;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 6px;
+    }
+
+    .announce-title {
+        font-size: 24px;
+        font-weight: normal;
+        margin: 0;
+    }
+
+    /* お知らせ一覧 */
+    .announce-list {
+        padding: 30px 7px 20px;
+    }
+
+    .announce-item {
+        background: white;
+        border: 2px solid #111;
+        margin-bottom: -2px;
+    }
+
+    .announce-toggle {
+        display: block;
+        width: 100%;
+        padding: 12px 8px;
+        border: none;
+        background: white;
+        color: #111;
+        text-align: left;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+    }
+
+    .announce-arrow {
+        float: right;
+        margin-left: 5px;
+    }
+
+    /* NEWマーク */
+    .new-badge {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 7px;
+        background-color: #ff4d4f;
+        color: white;
+        font-size: 11px;
+        font-weight: bold;
+        border-radius: 4px;
+        vertical-align: middle;
+    }
+
+    /* お知らせ本文 */
+    .announce-content {
+        padding: 0 10px 12px;
+        background: white;
+        font-size: 13px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .announce-date {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .announce-empty {
+        padding: 15px;
+        border: 2px solid #111;
+        background: white;
+        font-size: 14px;
+    }
+</style>
+
+<div class="announce-page">
+
+    <header class="announce-header">
+        <button type="button"
+                class="announce-hamburger"
+                onclick="openSideMenu()"
+                aria-label="メニューを開く">
+            ☰
+        </button>
+
+        <h1 class="announce-title">お知らせ</h1>
+    </header>
+
+    <section class="announce-list">
+        @if (Model.Announcements.Count == 0)
+        {
+            <div class="announce-empty">
+                現在、お知らせはありません。
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model.Announcements)
+            {
+                var panelId = $"announce-content-{item.AnnounceId}";
+
+                <article class="announce-item">
+                    <button type="button"
+                            class="announce-toggle"
+                            aria-expanded="false"
+                            aria-controls="@panelId"
+                            onclick="toggleAnnouncement(this)">
+
+                        @if (!string.IsNullOrWhiteSpace(item.Header))
+                        {
+                            <strong>@item.Header</strong>
+                        }
+                        else
+                        {
+                            <strong>【お知らせ】</strong>
+                        }
+
+                        @item.Title
+
+                        @if (item.PostedDate >= DateTime.Now.AddDays(-7)
+                       && item.PostedDate <= DateTime.Now)
+                        {
+                            <span class="new-badge">NEW</span>
+                        }
+
+                        <span class="announce-arrow">▼</span>
+                    </button>
+
+                    <div id="@panelId"
+                         class="announce-content"
+                         hidden>
+
+                        <div class="announce-date">
+                            投稿日：@item.PostedDate.ToString("yyyy/MM/dd")
+                        </div>
+
+                        @item.Content
+                    </div>
+                </article>
+            }
+        }
+    </section>
+</div>
+
+<partial name="_SideMenu" />
+
+<script>
+    function toggleAnnouncement(button) {
+        const panelId = button.getAttribute("aria-controls");
+        const panel = document.getElementById(panelId);
+
+        if (!panel) {
+            alert("お知らせ本文が見つかりません。");
+            return;
+        }
+
+        const opening = panel.hidden;
+
+        panel.hidden = !opening;
+        button.setAttribute("aria-expanded", String(opening));
+
+        const arrow = button.querySelector(".announce-arrow");
+
+        if (arrow) {
+            arrow.textContent = opening ? "▲" : "▼";
+        }
+    }
+</script>

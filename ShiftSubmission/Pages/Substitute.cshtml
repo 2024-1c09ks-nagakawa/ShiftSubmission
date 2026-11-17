@@ -1,0 +1,133 @@
+﻿@page
+@model ShiftSubmission.Pages.SubstituteModel
+
+@{
+    ViewData["Title"] = "代打募集・応募";
+}
+
+<style>
+    body {
+        background-color: #ffffcc;
+    }
+
+    .substitute-container {
+        max-width: 360px;
+        min-height: 520px;
+        margin: 0 auto;
+        background-color: #ffffcc;
+        text-align: center;
+        font-family: sans-serif;
+        padding-bottom: 20px;
+    }
+
+    .substitute-title {
+        background-color: #c9efff;
+        padding: 12px 0;
+        font-size: 24px;
+        margin: 0;
+        font-weight: normal;
+    }
+
+    .welcome {
+        margin: 15px 0;
+        font-size: 16px;
+    }
+
+    .recruitment-card {
+        background-color: white;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 15px 10px;
+        margin: 12px;
+        text-align: left;
+    }
+
+    .recruitment-card p {
+        margin: 8px 0;
+    }
+
+    .apply-button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-top: 12px;
+        background-color: #c9efff;
+        border: 1px solid #333;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+    .back-button {
+        display: block;
+        width: 160px;
+        margin: 20px auto;
+        padding: 10px;
+        background-color: white;
+        border: 1px solid #333;
+        border-radius: 10px;
+        color: #222;
+        text-decoration: none;
+    }
+</style>
+
+<div class="substitute-container">
+
+    <h1 class="substitute-title">代打募集・応募</h1>
+
+    <p class="welcome">
+        ようこそ！ @Model.MemberName さん
+    </p>
+
+    <h3>現在の代打募集</h3>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <p style="color: #0066cc; font-weight: bold;">
+            @Model.Message
+        </p>
+    }
+
+    @if (Model.RecruitmentList.Count == 0)
+    {
+        <p>現在、募集中の代打はありません。</p>
+    }
+    else
+    {
+        @foreach (var recruitment in Model.RecruitmentList)
+        {
+            <div class="recruitment-card">
+
+                <p>
+                    <strong>勤務日：</strong>
+                    @recruitment.WorkDate.ToString("yyyy/MM/dd")
+                </p>
+
+                <p>
+                    <strong>募集時間：</strong>
+                    @recruitment.StartAt.ToString(@"hh\:mm")
+                    ～ 
+                    @recruitment.EndAt.ToString(@"hh\:mm")
+                </p>
+
+                <p>
+                    <strong>募集者：</strong>
+                    @recruitment.RequesterName
+                </p>
+
+                <form method="post" asp-page-handler="Apply">
+                    <input type="hidden"
+                           name="RecruitmentId"
+                           value="@recruitment.RecruitmentId" />
+
+                    <button type="submit" class="apply-button">
+                        応募する
+                    </button>
+                </form>
+
+            </div>
+        }
+    }
+
+    <a asp-page="/Home" class="back-button">ホームに戻る</a>
+
+</div>

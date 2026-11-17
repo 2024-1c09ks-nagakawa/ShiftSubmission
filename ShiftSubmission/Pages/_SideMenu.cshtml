@@ -1,0 +1,125 @@
+﻿<div id="side-menu-overlay" class="side-menu-overlay" onclick="closeSideMenu()"></div>
+
+<aside id="side-menu" class="side-menu">
+    <div class="side-menu-header">
+        <div>メニュー</div>
+        <div class="staff-name">
+            @Context.Session.GetString("MemberName") さん
+        </div>
+    </div>
+
+    <a asp-page="/Home" class="side-menu-item">
+        <img src="~/images/ホーム.png" alt="" class="menu-image" />
+        ホーム
+    </a>
+
+    <a asp-page="/Index" class="side-menu-item">
+        <img src="~/images/シフト希望作成.png" alt="" class="menu-image" />
+        シフト希望入力
+    </a>
+
+    <a asp-page="/Availability" class="side-menu-item">
+        <img src="~/images/タイム.png" alt="" class="menu-image" />
+        <span>出勤可能時間設定</span>
+    </a>
+
+    <a asp-page="/ShiftConfirm" class="side-menu-item">
+        <img src="~/images/シフト確認.jpg" alt="" class="menu-image" />
+        シフト確認
+    </a>
+
+    <a asp-page="/ShiftChange" class="side-menu-item">
+        <img src="~/images/シフト変更希望.png" alt="" class="menu-image" />
+        シフト変更依頼
+    </a>
+
+    <a asp-page="/Announcements" class="side-menu-item">
+        <img src="~/images/お知らせ.jpg" alt="" class="menu-image" />
+        お知らせ
+    </a>
+
+    <a asp-page="/Logout"
+       class="side-menu-item"
+       onclick="return confirm('ログアウトしますか？');">
+        <img src="~/images/送信.jpg" alt="" class="menu-image" />
+        ログアウト
+    </a>
+</aside>
+
+<style>
+    .side-menu-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .55);
+        z-index: 1000;
+    }
+
+    .side-menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(68vw, 320px);
+        height: 100dvh;
+        background: #ffffff;
+        color: #222222;
+        z-index: 1001;
+        transform: translateX(-105%);
+        transition: transform .25s ease;
+        overflow-y: auto;
+    }
+
+    .side-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 18px;
+        color: #222222;
+        text-decoration: none;
+        font-size: 17px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .menu-image {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+        .side-menu.open {
+            transform: translateX(0);
+        }
+
+    .side-menu-overlay.open {
+        display: block;
+    }
+
+    .side-menu-header {
+        background: #c9df19;
+        color: white;
+        padding: 26px 18px;
+        font-size: 22px;
+        min-height: 110px;
+        box-sizing: border-box;
+    }
+
+    .staff-name {
+        margin-top: 12px;
+        font-size: 14px;
+        text-align: right;
+    }
+
+</style>
+
+<script>
+    function openSideMenu() {
+        document.getElementById("side-menu").classList.add("open");
+        document.getElementById("side-menu-overlay").classList.add("open");
+    }
+
+    function closeSideMenu() {
+        document.getElementById("side-menu").classList.remove("open");
+        document.getElementById("side-menu-overlay").classList.remove("open");
+    }
+</script>

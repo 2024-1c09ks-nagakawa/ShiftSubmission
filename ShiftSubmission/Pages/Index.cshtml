@@ -1,0 +1,394 @@
+﻿@page
+@model ShiftSubmission.Pages.IndexModel
+
+@{
+    ViewData["Title"] = "シフト希望入力";
+}
+
+<style>
+    body {
+        background: rgb(255, 255, 192);
+    }
+
+    .shift-page {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 0 12px 12px;
+        color: #333;
+    }
+
+    .header {
+        height: 78px;
+        background-color: rgb(192, 255, 255);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-bottom: 0;
+        border-radius: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .page-title {
+        font-size: 22px;
+        font-weight: normal;
+        margin: 0;
+    }
+
+    .menu-toggle {
+        position: absolute;
+        left: 12px;
+        border: none;
+        background: transparent;
+        font-size: 30px;
+        color: #222;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    .panel {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+
+    .month-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .month-navigation {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .month-navigation button {
+            flex-shrink: 0;
+            padding: 10px 6px;
+            border: none;
+            background: transparent;
+            color: #333;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .month-navigation .month-input {
+            flex: 1;
+            min-width: 0;
+            width: 0;
+        }
+
+    .month-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+
+    .shift-row {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+        .shift-row:last-child {
+            border-bottom: none;
+        }
+
+    .work-date {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .weekday {
+        display: block;
+        color: #777;
+        font-weight: normal;
+        margin-top: 4px;
+    }
+
+    .sunday {
+        color: #d33;
+    }
+
+    .saturday {
+        color: #2672cc;
+    }
+
+    .shift-select {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 4px;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        background: white;
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+
+    .time-inputs label {
+        display: block;
+        margin-top: 6px;
+        margin-bottom: 4px;
+        font-size: 13px;
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 9px;
+        background: #168b50;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    .message {
+        padding: 12px;
+        border-radius: 8px;
+        background: #e4f6e9;
+        color: #176b36;
+        margin: 14px 0;
+    }
+
+    .errors {
+        color: #c62828;
+        margin-bottom: 12px;
+    }
+
+    @@media (max-width: 360px) {
+        .shift-row {
+            grid-template-columns: 100px minmax(0, 1fr);
+            gap: 6px;
+        }
+
+        .page-title {
+            font-size: 19px;
+        }
+
+        .month-navigation {
+            gap: 2px;
+        }
+
+            .month-navigation button {
+                padding: 10px 2px;
+                font-size: 11px;
+            }
+    }
+</style>
+
+<div class="shift-page">
+    <header class="header">
+        <button type="button"
+                class="menu-toggle"
+                onclick="openSideMenu()"
+                aria-label="メニューを開く">
+            ☰
+        </button>
+
+        <h1 class="page-title">シフト希望入力</h1>
+    </header>
+
+    <partial name="_SideMenu" />
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message">
+            @Model.Message
+        </div>
+    }
+
+    @if (Model.IsSubmitted)
+    {
+        <div class="message">
+            この月は提出済みのため、変更できません。
+            確定シフト公開後は、シフト変更画面を利用してください。
+        </div>
+    }
+
+    <div asp-validation-summary="All" class="errors"></div>
+
+    <form method="post">
+        <div class="panel">
+            <label class="month-label" for="TargetMonth">
+                提出する年月
+            </label>
+
+            <div class="month-navigation">
+                <button type="button" onclick="moveMonth(-1)">
+                    ◀ 前月
+                </button>
+
+                <input asp-for="TargetMonth"
+                       id="TargetMonth"
+                       type="month"
+                       class="month-input"
+                       required
+                       onchange="changeMonth(this)" />
+
+                <button type="button" onclick="moveMonth(1)">
+                    次月 ▶
+                </button>
+            </div>
+        </div>
+
+        <div class="panel">
+            @for (int i = 0; i < Model.Shifts.Count; i++)
+            {
+                var shift = Model.Shifts[i];
+                var day = shift.WorkDate;
+                var weekday = day.ToString("ddd");
+                var dayClass = day.DayOfWeek == DayOfWeek.Sunday
+                ? "sunday"
+                : day.DayOfWeek == DayOfWeek.Saturday
+                ? "saturday"
+                : "";
+
+                <div class="shift-row">
+                    <div class="work-date @dayClass">
+                        @day.ToString("M/d")
+                        <span class="weekday">（@weekday）</span>
+                    </div>
+
+                    <div>
+                        <input type="hidden"
+                               asp-for="Shifts[i].WorkDate" />
+
+                        <select asp-for="Shifts[i].ShiftType"
+                                class="shift-select shift-type"
+                                disabled="@Model.IsSubmitted"
+                                onchange="toggleTime(this)">
+                            <option value="">未選択</option>
+                            <option value="休み">休み</option>
+                            <option value="勤務">勤務する</option>
+                        </select>
+
+                        <div class="time-inputs"
+                             style="margin-top:8px; display:none;">
+
+                            <label>開始時間</label>
+                            <select asp-for="Shifts[i].StartTime"
+                                    class="shift-select time-select"
+                                    data-default="@shift.StartTime"
+                                    disabled="@Model.IsSubmitted">
+                            </select>
+
+                            <label>終了時間</label>
+                            <select asp-for="Shifts[i].EndTime"
+                                    class="shift-select time-select"
+                                    data-default="@shift.EndTime"
+                                    disabled="@Model.IsSubmitted">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <button type="submit"
+                class="submit-button"
+                disabled="@Model.IsSubmitted">
+            @(Model.IsSubmitted ? "提出済み" : "シフト希望を提出")
+        </button>
+    </form>
+</div>
+
+<script>
+    function changeMonth(input) {
+        if (!input.value) return;
+
+        const [year, month] = input.value.split("-");
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("year", year);
+        url.searchParams.set("month", month);
+
+        window.location.href = url.toString();
+    }
+
+    function moveMonth(offset) {
+        const input = document.getElementById("TargetMonth");
+
+        if (!input.value) return;
+
+        const [year, month] = input.value.split("-").map(Number);
+        const date = new Date(year, month - 1 + offset, 1);
+
+        input.value =
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+        changeMonth(input);
+    }
+
+    function toggleTime(select) {
+        const row = select.closest(".shift-row");
+        const timeInputs = row.querySelector(".time-inputs");
+
+        if (timeInputs) {
+            timeInputs.style.display =
+                select.value === "勤務" ? "block" : "none";
+        }
+    }
+
+    function createTimeOptions(select, defaultTime) {
+        const savedTime = select.getAttribute("data-default");
+        const initialTime = savedTime || defaultTime;
+
+        select.innerHTML = "";
+
+        for (let minutes = 0; minutes < 24 * 60; minutes += 30) {
+            const hour = Math.floor(minutes / 60);
+            const minute = minutes % 60;
+
+            const time =
+                String(hour).padStart(2, "0") + ":" +
+                String(minute).padStart(2, "0");
+
+            const option = document.createElement("option");
+            option.value = time;
+            option.textContent = time;
+            select.appendChild(option);
+        }
+
+        select.value = initialTime;
+
+        if (select.selectedIndex === -1) {
+            select.value = defaultTime;
+        }
+    }
+
+    document.querySelectorAll(".shift-row").forEach(row => {
+        const timeSelects = row.querySelectorAll(".time-select");
+
+        if (timeSelects.length === 2) {
+            const startTime = timeSelects[0].getAttribute("data-default")
+                || timeSelects[0].value
+                || "09:00";
+
+            const endTime = timeSelects[1].getAttribute("data-default")
+                || timeSelects[1].value
+                || "17:00";
+
+            createTimeOptions(timeSelects[0], startTime);
+            createTimeOptions(timeSelects[1], endTime);
+        }
+
+        const shiftSelect = row.querySelector(".shift-type");
+
+        if (shiftSelect) {
+            toggleTime(shiftSelect);
+        }
+    });
+</script>

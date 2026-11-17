@@ -1,0 +1,392 @@
+﻿@page
+@model ShiftSubmission.Pages.ShiftChangeModel
+
+@{
+    ViewData["Title"] = "シフト変更（依頼）";
+}
+
+<style>
+    body {
+        background: rgb(255, 255, 192);
+    }
+
+    .shift-page {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 0 12px 12px;
+        color: #333;
+    }
+
+    .header {
+        height: 78px;
+        background: rgb(192, 255, 255);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .page-title {
+        font-size: 22px;
+        font-weight: normal;
+        margin: 0;
+    }
+
+    .menu-toggle {
+        position: absolute;
+        left: 12px;
+        border: none;
+        background: transparent;
+        font-size: 30px;
+        color: #222;
+        cursor: pointer;
+    }
+
+    .panel {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+
+    .month-label,
+    .field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        margin: 10px 0 5px;
+    }
+
+    .month-label {
+        font-size: 16px;
+        margin: 0 0 8px;
+    }
+
+    .month-navigation {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .month-navigation button {
+            flex-shrink: 0;
+            padding: 10px 6px;
+            border: none;
+            background: transparent;
+            color: #333;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+    .month-input {
+        flex: 1;
+        min-width: 0;
+        width: 0;
+        box-sizing: border-box;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+
+    .shift-row {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+        .shift-row:last-child {
+            border-bottom: none;
+        }
+
+    .work-date {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .weekday {
+        display: block;
+        color: #777;
+        font-weight: normal;
+        margin-top: 4px;
+    }
+
+    .sunday {
+        color: #d33;
+    }
+
+    .saturday {
+        color: #2672cc;
+    }
+
+    .current-shift {
+        font-size: 13px;
+        color: #555;
+        background: #f5f5f5;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    .no-shift {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .shift-select {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 4px;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        background: white;
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 9px;
+        background: #168b50;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .message {
+        padding: 12px;
+        border-radius: 8px;
+        background: #e4f6e9;
+        color: #176b36;
+        margin: 14px 0;
+    }
+
+    .errors {
+        color: #c62828;
+        margin-bottom: 12px;
+    }
+
+    @@media (max-width: 360px) {
+        .shift-row {
+            grid-template-columns: 85px minmax(0, 1fr);
+            gap: 6px;
+        }
+
+        .page-title {
+            font-size: 19px;
+        }
+
+        .month-navigation {
+            gap: 2px;
+        }
+
+            .month-navigation button {
+                padding: 10px 2px;
+                font-size: 11px;
+            }
+    }
+</style>
+
+<div class="shift-page">
+    <header class="header">
+        <button type="button"
+                class="menu-toggle"
+                onclick="openSideMenu()"
+                aria-label="メニューを開く">
+            ☰
+        </button>
+
+        <h1 class="page-title">シフト変更（依頼）</h1>
+    </header>
+
+    <partial name="_SideMenu" />
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message">@Model.Message</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="errors">@Model.ErrorMessage</div>
+    }
+
+    <div asp-validation-summary="All" class="errors"></div>
+
+    <form method="post">
+        <div class="panel">
+            <label class="month-label" for="TargetMonth">
+                変更する年月
+            </label>
+
+            <div class="month-navigation">
+                <button type="button" onclick="moveMonth(-1)">
+                    ◀ 前月
+                </button>
+
+                <input asp-for="TargetMonth"
+                       id="TargetMonth"
+                       type="month"
+                       class="month-input"
+                       required
+                       onchange="changeMonth(this)" />
+
+                <button type="button" onclick="moveMonth(1)">
+                    次月 ▶
+                </button>
+            </div>
+        </div>
+
+        <div class="panel">
+            @for (int i = 0; i < Model.Shifts.Count; i++)
+            {
+                var shift = Model.Shifts[i];
+                var day = shift.WorkDate;
+
+                var dayClass =
+                day.DayOfWeek == DayOfWeek.Sunday ? "sunday" :
+                day.DayOfWeek == DayOfWeek.Saturday ? "saturday" : "";
+
+                <div class="shift-row">
+                    <div class="work-date @dayClass">
+                        @day.ToString("M/d")
+                        <span class="weekday">
+                            （@day.ToString("ddd")）
+                        </span>
+                    </div>
+
+                    <div>
+                        <input type="hidden"
+                               asp-for="Shifts[i].WorkDate" />
+
+                        @if (shift.HasShift)
+                        {
+                            <div class="current-shift">
+                                現在の確定シフト<br />
+                                @shift.CurrentShift
+                            </div>
+
+                            <label class="field-label">
+                                変更後の勤務区分
+                            </label>
+
+                            <select asp-for="Shifts[i].ShiftType"
+                                    class="shift-select shift-type"
+                                    onchange="toggleTime(this)">
+                                <option value="">未選択</option>
+                                <option value="休み">休み</option>
+                                <option value="勤務">勤務する</option>
+                            </select>
+
+                            <div class="time-inputs" style="display:none;">
+                                <label class="field-label">開始時間</label>
+                                <select asp-for="Shifts[i].StartTime"
+                                        class="shift-select time-select">
+                                </select>
+
+                                <label class="field-label">終了時間</label>
+                                <select asp-for="Shifts[i].EndTime"
+                                        class="shift-select time-select">
+                                </select>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="no-shift">確定シフトなし</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <button type="submit" class="submit-button">
+            変更を依頼する
+        </button>
+    </form>
+</div>
+
+<script>
+    function changeMonth(input) {
+        if (!input.value) return;
+
+        const [year, month] = input.value.split("-");
+        const url = new URL(window.location.href);
+
+        url.searchParams.set("year", year);
+        url.searchParams.set("month", month);
+
+        window.location.href = url.toString();
+    }
+
+    function moveMonth(offset) {
+        const input = document.getElementById("TargetMonth");
+        if (!input.value) return;
+
+        const [year, month] = input.value.split("-").map(Number);
+        const date = new Date(year, month - 1 + offset, 1);
+
+        input.value =
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+        changeMonth(input);
+    }
+
+    function toggleTime(select) {
+        const row = select.closest(".shift-row");
+        const timeInputs = row.querySelector(".time-inputs");
+
+        if (timeInputs) {
+            timeInputs.style.display =
+                select.value === "勤務" ? "block" : "none";
+        }
+    }
+
+    function createTimeOptions(select, defaultTime) {
+        const currentValue = select.value || defaultTime;
+        select.innerHTML = "";
+
+        for (let minutes = 0; minutes < 1440; minutes += 30) {
+            const hour = Math.floor(minutes / 60);
+            const minute = minutes % 60;
+
+            const time =
+                String(hour).padStart(2, "0") + ":" +
+                String(minute).padStart(2, "0");
+
+            const option = document.createElement("option");
+            option.value = time;
+            option.textContent = time;
+
+            select.appendChild(option);
+        }
+
+        select.value = currentValue;
+
+        if (!select.value) {
+            select.value = defaultTime;
+        }
+    }
+
+    document.querySelectorAll(".shift-row").forEach(row => {
+        const timeSelects = row.querySelectorAll(".time-select");
+
+        if (timeSelects.length === 2) {
+            createTimeOptions(timeSelects[0], "09:00");
+            createTimeOptions(timeSelects[1], "17:00");
+        }
+
+        const shiftSelect = row.querySelector(".shift-type");
+
+        if (shiftSelect) {
+            toggleTime(shiftSelect);
+        }
+    });
+</script>

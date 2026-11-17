@@ -1,0 +1,83 @@
+﻿@page
+@model ShiftSubmission.Pages.LoginModel
+
+@{
+    ViewData["Title"] = "ログイン";
+}
+
+<style>
+    body {
+        background: rgb(255, 255, 192);
+    }
+
+    .login-page {
+        max-width: 400px;
+        margin: 60px auto;
+        padding: 20px;
+    }
+
+    .login-panel {
+        background: white;
+        padding: 24px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+    }
+
+        .login-panel label {
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 6px;
+        }
+
+        .login-panel input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+        }
+
+    .login-button {
+        width: 100%;
+        margin-top: 24px;
+        padding: 13px;
+        background: #168b50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 17px;
+    }
+
+    .error {
+        color: #c62828;
+        margin-top: 12px;
+    }
+</style>
+
+<div class="login-page">
+    <div class="login-panel">
+        <h1>スタッフログイン</h1>
+
+        <div asp-validation-summary="All" class="error"></div>
+
+        <form method="post">
+            <label asp-for="LoginId">ログインID</label>
+            <input asp-for="LoginId"
+                   inputmode="numeric"
+                   autocomplete="username"
+                   required />
+
+            <label asp-for="Password">パスワード</label>
+            <input asp-for="Password"
+                   type="password"
+                   autocomplete="current-password"
+                   required />
+
+            <button type="submit" class="login-button">
+                ログイン
+            </button>
+        </form>
+    </div>
+</div>
+

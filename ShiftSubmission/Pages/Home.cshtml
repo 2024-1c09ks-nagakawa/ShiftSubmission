@@ -1,0 +1,141 @@
+﻿@page
+@model ShiftSubmission.Pages.HomeModel
+
+@{
+    ViewData["Title"] = "ホーム";
+}
+
+<style>
+    .menu-image {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    body {
+        background-color: #ffffcc;
+    }
+
+    .home-container {
+        max-width: 360px;
+        min-height: 520px;
+        margin: 0 auto;
+        background-color: #ffffcc;
+        text-align: center;
+        font-family: sans-serif;
+    }
+
+    .home-title {
+        background-color: #c9efff;
+        padding: 12px 0;
+        font-size: 25px;
+        margin: 0;
+        font-weight: normal;
+    }
+
+    .home-date {
+        text-align: left;
+        background: transparent;
+        border: none;
+        padding: 5px;
+        width: 130px;
+        margin: 0;
+    }
+
+    .welcome {
+        margin: 12px 0 8px;
+        font-size: 18px;
+    }
+
+    .menu-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        width: 180px;
+        height: 108px;
+        margin: 7px auto;
+        background: white;
+        border: 1px solid #333;
+        border-radius: 20px;
+        color: #222;
+        text-decoration: none;
+        box-sizing: border-box;
+    }
+
+    .menu-button .symbol {
+        font-size: 48px;
+        line-height: 1.1;
+    }
+
+    .menu-button .menu-text {
+        font-size: 13px;
+    }
+
+    .bottom-menu {
+        display: flex;
+        gap: 12px;
+        margin: 18px 15px;
+    }
+
+    .bottom-menu .menu-button {
+        width: 50%;
+        height: 68px;
+        border-radius: 12px;
+        margin: 0;
+        gap: 2px;
+    }
+
+    .bottom-menu .symbol {
+        font-size: 32px;
+    }
+</style>
+
+<div class="home-container">
+    <h1 class="home-title">ぽちっとシフト</h1>
+
+    <p class="home-date">
+        @DateTime.Now.ToString("yyyy/MM/dd")
+    </p>
+
+    <p class="welcome">
+        ようこそ！ @Model.MemberName さん
+    </p>
+
+    <a asp-page="/Index" class="menu-button">
+        <img src="~/images/シフト希望作成.png"
+             alt="シフト希望入力"
+             class="menu-image" />
+        <span class="menu-text">シフト希望入力</span>
+    </a>
+
+    <a asp-page="/ShiftConfirm" class="menu-button">
+        <img src="~/images/シフト確認.jpg"
+             alt="シフト確認"
+             class="menu-image" />
+        <span class="menu-text">シフト確認</span>
+    </a>
+
+    <!-- 代打募集・応募 -->
+    <a asp-page="/Substitute" class="menu-button">
+        <span class="symbol">🤝</span>
+        <span class="menu-text">代打募集・応募</span>
+    </a>
+
+    <div class="bottom-menu">
+        <a asp-page="/ShiftChange" class="menu-button">
+            <img src="~/images/シフト変更希望.png"
+                 alt="シフト変更希望"
+                 class="menu-image" />
+            <span class="menu-text">シフト変更依頼</span>
+        </a>
+
+        <a asp-page="/Announcements" class="menu-button">
+            <img src="~/images/お知らせ.jpg"
+                 alt="お知らせ"
+                 class="menu-image" />
+            <span class="menu-text">お知らせ</span>
+        </a>
+    </div>
+</div>
